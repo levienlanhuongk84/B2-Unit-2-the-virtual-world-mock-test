@@ -210,6 +210,8 @@
   .passage h4 { margin: 0 0 10px; font: 700 18px var(--font); color: var(--purple-ink); }
   .split { display: grid; grid-template-columns: 1fr; }
   @media (min-width: 900px) { .split.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .split.two > .pwrap { border-right: 1px solid var(--line); position: sticky; top: 128px; align-self: start; max-height: calc(100vh - 140px); display: flex; flex-direction: column; } .split.two > .pwrap .passage { overflow: auto; flex: 1 1 auto; } }
+  /* narrow passage (3.3.0): the passage stays pinned under the test bar in its own scroll box while the questions scroll below it */
+  @media (max-width: 899px) { .split.two > .pwrap { position: sticky; top: var(--stick-top, 138px); z-index: 6; background: var(--surface); max-height: 44vh; display: flex; flex-direction: column; border-bottom: 2px solid var(--line-strong); box-shadow: 0 8px 12px -10px rgba(0, 0, 0, .35); } .split.two > .pwrap .ptools { padding: 6px 12px; } .split.two > .pwrap .passage { overflow: auto; flex: 1 1 auto; padding: 10px 14px 4px; font-size: 15px; } } /* end narrow passage */
   .split.stack { grid-template-columns: 1fr !important; } .split.stack > .pwrap { position: static !important; max-height: none !important; border-right: 0 !important; border-bottom: 1px solid var(--line); }
   .ptools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 20px; border-bottom: 1px solid var(--line); background: var(--surface-3); font-size: 13px; color: var(--ink-2); }
   .ptools .tb { appearance: none; border: 1px solid var(--line-strong); background: var(--surface); color: var(--purple-ink); font: 700 12px var(--font-cond); letter-spacing: .06em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; cursor: pointer; }
@@ -1045,6 +1047,9 @@ function onAnswer(e) {
 }
 $('#part-host').addEventListener('click', e => { const b = e.target.closest('[data-flag]'); if (!b) return; const id = b.dataset.flag; S.flags[id] = !S.flags[id]; save(); b.classList.toggle('on', !!S.flags[id]); renderPalette(); });
 $('#btn-layout').addEventListener('click', () => { S.layout = S.layout === 'stack' ? 'side' : 'stack'; save(); const sp = $('#split'); if (sp) sp.classList.toggle('stack', S.layout === 'stack'); });
+/* narrow screens pin the passage right under the sticky test bar, whose height changes as it wraps */
+(() => { const tb = $('#testbar'); if (!tb) return; const sync = () => { const h = tb.offsetHeight; if (h) document.documentElement.style.setProperty('--stick-top', Math.round((parseFloat(getComputedStyle(tb).top) || 0) + h + 4) + 'px'); };
+  if (window.ResizeObserver) new ResizeObserver(sync).observe(tb); addEventListener('resize', sync); sync(); })();
 /* ====================== QUESTION PALETTE ====================== */
 function renderPalette() {
   const pal = $('#palette'); if (!pal || S.phase !== 'run') return;
