@@ -210,8 +210,31 @@
   .passage h4 { margin: 0 0 10px; font: 700 18px var(--font); color: var(--purple-ink); }
   .split { display: grid; grid-template-columns: 1fr; }
   @media (min-width: 900px) { .split.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .split.two > .pwrap { border-right: 1px solid var(--line); position: sticky; top: 128px; align-self: start; max-height: calc(100vh - 140px); display: flex; flex-direction: column; } .split.two > .pwrap .passage { overflow: auto; flex: 1 1 auto; } }
-  /* narrow passage (3.3.0): the passage stays pinned under the test bar in its own scroll box while the questions scroll below it */
-  @media (max-width: 899px) { .split.two > .pwrap { position: sticky; top: var(--stick-top, 138px); z-index: 6; background: var(--surface); max-height: 44vh; display: flex; flex-direction: column; border-bottom: 2px solid var(--line-strong); box-shadow: 0 8px 12px -10px rgba(0, 0, 0, .35); } .split.two > .pwrap .ptools { padding: 6px 12px; } .split.two > .pwrap .passage { overflow: auto; flex: 1 1 auto; padding: 10px 14px 4px; font-size: 15px; } } /* end narrow passage */
+  /* narrow passage (3.3.0; phone reading 3.4.0): the passage stays pinned under a one-line test bar in its own scroll box; students drag the grip to resize it or hide it, and the questions scroll below it */
+  .pgrip, .ptools .tb-pane { display: none; }
+  @media (max-width: 899px) {
+    .testbar { box-shadow: 0 0 0 8px var(--bg), var(--shadow); }   /* a page-coloured halo hides the text that would peek between the bar and the pinned passage */
+    .split.two > .pwrap { position: sticky; top: var(--stick-top, 138px); z-index: 6; background: var(--surface); height: var(--pane-h, 42vh); min-height: 0; display: flex; flex-direction: column; box-shadow: 0 8px 12px -10px rgba(0, 0, 0, .35); }
+    .split.two > .pwrap.collapsed { height: auto; } .split.two > .pwrap.collapsed .passage { display: none; }
+    .split.two > .pwrap .ptools { padding: 5px 10px; gap: 6px; flex-wrap: nowrap; } .split.two > .pwrap .ptools > span { display: none; }
+    .split.two > .pwrap .ptools .tb { padding: 5px 8px; font-size: 11px; letter-spacing: .03em; white-space: nowrap; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; } .split.two > .pwrap .ptools .tb-pane { display: inline-block; margin-left: auto; flex-shrink: 0; }
+    .split.two > .pwrap .passage { overflow: auto; flex: 1 1 auto; min-height: 0; padding: 8px 14px 4px; font-size: 15px; line-height: 1.6; overscroll-behavior: contain; }
+    .split.two > .pwrap .passage h4 { font-size: 16px; margin-bottom: 6px; }
+    .split.two > .pwrap .pgrip { display: flex; justify-content: center; align-items: center; flex: 0 0 22px; background: var(--surface-3); border-top: 2px solid var(--line-strong); cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; }
+    .split.two > .pwrap .pgrip::before { content: ''; width: 46px; height: 5px; border-radius: 3px; background: var(--muted); opacity: .55; }
+    .split.two > .pwrap.collapsed .pgrip { display: none; }
+    .split.two .items { padding: 2px 12px 10px; } .split.two .item { grid-template-columns: 28px 1fr; gap: 8px; padding: 12px 0; scroll-margin-top: calc(var(--stick-top, 138px) + var(--pane-real, 42vh) + 10px); }
+    .split.two .qn { font-size: 12px; height: 26px; padding: 6px 0; } .split.two .q { font-size: 15.5px; margin: 2px 0 8px; }
+    .split.two .opts { gap: 6px; } .split.two .opt { padding: 8px 10px; gap: 8px; font-size: 15px; }
+    .split.stack .pgrip, .split.stack .tb-pane { display: none !important; }
+  }
+  @media (max-width: 640px) {
+    .testbar { grid-template-columns: auto minmax(0, 1fr) auto; padding: 6px 10px; gap: 2px 10px; margin-bottom: 10px; }
+    .testbar .time { font-size: 20px; min-width: 0; grid-row: 1; grid-column: 1; } .testbar .time small { display: none; }
+    .testbar .mid { grid-row: 1; grid-column: 2; min-width: 0; } .testbar .mid #who { display: none; }
+    .testbar .mid .lbl { font-size: 11px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; } .testbar .mid .lbl > span { overflow: hidden; text-overflow: ellipsis; }
+    .testbar > span { grid-row: 1; grid-column: 3; } .testbar > span .btn.sm { padding: 6px 9px; font-size: 11px; }
+  } /* end narrow passage */
   .split.stack { grid-template-columns: 1fr !important; } .split.stack > .pwrap { position: static !important; max-height: none !important; border-right: 0 !important; border-bottom: 1px solid var(--line); }
   .ptools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 20px; border-bottom: 1px solid var(--line); background: var(--surface-3); font-size: 13px; color: var(--ink-2); }
   .ptools .tb { appearance: none; border: 1px solid var(--line-strong); background: var(--surface); color: var(--purple-ink); font: 700 12px var(--font-cond); letter-spacing: .06em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; cursor: pointer; }
@@ -959,8 +982,8 @@ function userMarks(text, spans) {
 }
 function readingPanel(p) {
   const H = S.hl[p.id] || [];
-  return `<div class="pwrap"><div class="ptools"><button class="tb${S.hlOn ? ' on' : ''}" id="btn-hl" title="Select text in the passage to highlight it; click a highlight to remove it">🖍 Highlighter ${S.hlOn ? 'on' : 'off'}</button><button class="tb" id="btn-hl-clear">Clear highlights</button><span>Select words to mark them · click a mark to remove it</span></div>
-    <div class="passage${S.hlOn ? ' hl-on' : ''}" id="passage"><h4>${esc(p.src.title)}</h4>${p.src.paras.map((t, i) => `<p><span class="pn">${i + 1}</span><span class="pt" data-p="${i}">${userMarks(t, H.filter(h => h.p === i))}</span></p>`).join('')}</div></div>`;
+  return `<div class="pwrap"><div class="ptools"><button class="tb${S.hlOn ? ' on' : ''}" id="btn-hl" title="Select text in the passage to highlight it; click a highlight to remove it">🖍 Highlighter ${S.hlOn ? 'on' : 'off'}</button><button class="tb" id="btn-hl-clear">Clear highlights</button><span>Select words to mark them · click a mark to remove it</span><button class="tb tb-pane" id="btn-pane" title="Hide or show the passage">${S.paneHide ? '▾ Show text' : '▴ Hide text'}</button></div>
+    <div class="passage${S.hlOn ? ' hl-on' : ''}" id="passage"><h4>${esc(p.src.title)}</h4>${p.src.paras.map((t, i) => `<p><span class="pn">${i + 1}</span><span class="pt" data-p="${i}">${userMarks(t, H.filter(h => h.p === i))}</span></p>`).join('')}</div><div class="pgrip" id="pgrip" title="Drag to make the passage taller or shorter"></div></div>`;
 }
 function ptOffset(pt, node, offset) { const r = document.createRange(); r.setStart(pt, 0); r.setEnd(node, offset); return r.toString().length; }
 function addHighlight(partId, p, s, e) {
@@ -989,6 +1012,19 @@ function onPassageClick(e) {
   const i = +m.closest('.pt').dataset.p, s = +m.dataset.s, en = +m.dataset.e;
   S.hl[p.id] = (S.hl[p.id] || []).filter(h => !(h.p === i && h.s === s && h.e === en)); save(); repaintPara(p.id, i);
 }
+/* phones (< 900 px): the student drags the grip to resize the pinned passage or hides it; size and state are remembered (3.4.0) */
+function phonePane() {
+  const pw = $('#split .pwrap'); if (!pw) return; const narrow = () => innerWidth < 900;
+  const apply = () => { pw.classList.toggle('collapsed', !!S.paneHide); pw.style.setProperty('--pane-h', Math.round((S.paneH || 0.42) * 100) + 'vh'); const b = $('#btn-pane'); if (b) b.textContent = S.paneHide ? '▾ Show text' : '▴ Hide text'; };
+  const real = () => document.documentElement.style.setProperty('--pane-real', (narrow() ? pw.offsetHeight : 0) + 'px');
+  apply(); real(); if (window.ResizeObserver) new ResizeObserver(real).observe(pw);
+  $('#btn-pane').addEventListener('click', () => { S.paneHide = !S.paneHide; save(); apply(); });
+  const g = $('#pgrip'); let y0 = 0, h0 = 0;
+  g.addEventListener('pointerdown', ev => { y0 = ev.clientY; h0 = pw.offsetHeight; g.setPointerCapture(ev.pointerId); ev.preventDefault(); });
+  g.addEventListener('pointermove', ev => { if (!g.hasPointerCapture(ev.pointerId)) return; const top = pw.getBoundingClientRect().top; const max = innerHeight - top - 120;
+    const h = Math.max(110, Math.min(max, h0 + ev.clientY - y0)); S.paneH = h / innerHeight; pw.style.setProperty('--pane-h', h + 'px'); });
+  g.addEventListener('pointerup', ev => { if (g.hasPointerCapture(ev.pointerId)) g.releasePointerCapture(ev.pointerId); save(); apply(); });
+}
 function renderPart() {
   const p = curPart(); const host = $('#part-host');
   if (p.kind === 'reading') {
@@ -997,6 +1033,7 @@ function renderPart() {
     $('#btn-hl').addEventListener('click', () => { S.hlOn = !S.hlOn; save(); $('#btn-hl').classList.toggle('on', S.hlOn); $('#btn-hl').textContent = '🖍 Highlighter ' + (S.hlOn ? 'on' : 'off'); $('#passage').classList.toggle('hl-on', S.hlOn); });
     $('#btn-hl-clear').addEventListener('click', () => { S.hl[p.id] = []; save(); p.src.paras.forEach((_, i) => repaintPara(p.id, i)); });
     $('#passage').addEventListener('mouseup', () => setTimeout(onPassageMouseUp, 10));
+    phonePane();
     $('#passage').addEventListener('touchend', () => setTimeout(onPassageMouseUp, 150));
     $('#passage').addEventListener('click', onPassageClick);
   } else if (p.kind === 'listening') {
@@ -1048,7 +1085,7 @@ function onAnswer(e) {
 $('#part-host').addEventListener('click', e => { const b = e.target.closest('[data-flag]'); if (!b) return; const id = b.dataset.flag; S.flags[id] = !S.flags[id]; save(); b.classList.toggle('on', !!S.flags[id]); renderPalette(); });
 $('#btn-layout').addEventListener('click', () => { S.layout = S.layout === 'stack' ? 'side' : 'stack'; save(); const sp = $('#split'); if (sp) sp.classList.toggle('stack', S.layout === 'stack'); });
 /* narrow screens pin the passage right under the sticky test bar, whose height changes as it wraps */
-(() => { const tb = $('#testbar'); if (!tb) return; const sync = () => { const h = tb.offsetHeight; if (h) document.documentElement.style.setProperty('--stick-top', Math.round((parseFloat(getComputedStyle(tb).top) || 0) + h + 4) + 'px'); };
+(() => { const tb = $('#testbar'); if (!tb) return; const sync = () => { const h = tb.offsetHeight; if (h) document.documentElement.style.setProperty('--stick-top', Math.round((parseFloat(getComputedStyle(tb).top) || 0) + h + (innerWidth < 900 ? 8 : 4)) + 'px'); };
   if (window.ResizeObserver) new ResizeObserver(sync).observe(tb); addEventListener('resize', sync); sync(); })();
 /* ====================== QUESTION PALETTE ====================== */
 function renderPalette() {
@@ -1064,7 +1101,7 @@ function renderPalette() {
   }
   pal.onclick = e => {
     const q = e.target.closest('[data-q]');
-    if (q) { const i = +q.dataset.pi; const go = () => { const el = $(`[data-item="${q.dataset.q}"]`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.style.outline = '2px solid var(--orange)'; setTimeout(() => el.style.outline = '', 1500); } }; if (i !== S.pi) { gotoPart(i); setTimeout(go, 80); } else go(); return; }
+    if (q) { const i = +q.dataset.pi; const go = () => { const el = $(`[data-item="${q.dataset.q}"]`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: innerWidth < 900 && el.closest('.split.two:not(.stack)') ? 'start' : 'center' }); el.style.outline = '2px solid var(--orange)'; setTimeout(() => el.style.outline = '', 1500); } }; if (i !== S.pi) { gotoPart(i); setTimeout(go, 80); } else go(); return; }
     const r = e.target.closest('[data-pi]'); if (r) { const i = +r.dataset.pi; if (i !== S.pi) gotoPart(i); }
   };
 }
